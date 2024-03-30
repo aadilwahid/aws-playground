@@ -1,0 +1,8 @@
+# package directories
+node_modules
+
+package-lock.json
+
+output
+
+.env
