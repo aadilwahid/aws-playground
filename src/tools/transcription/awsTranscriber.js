@@ -9,7 +9,7 @@ import {
   startTranscriptionJob,
 } from '../../services/transcribe.service.js';
 import { splitChannels } from '../../utils/ffmpeg.js';
-import { generateTranscript } from './transcriptHelper.js';
+import { mergeAWSTranscripts } from './awsTranscriptHelper.js';
 import { appendToFile, saveAudioFile } from '../../utils/fileUtil.js';
 
 const S3_CALL_AUDIO_BUCKET = process.env.S3_CALL_AUDIO_BUCKET;
@@ -55,11 +55,11 @@ export async function handler(fileId, accountId, interactionId) {
    * 6- Generate Transcription
    */
   if (leftTranscript && rightTranscript) {
-    generateTranscript(
+    mergeAWSTranscripts(
       fileId,
       leftTranscript,
       rightTranscript,
-      'Reed Shepherd',
+      'Reed Scheperd',
       'Corvum Help Desk'
     );
 
@@ -198,3 +198,12 @@ async function downloadTranscript(transcriptFileUrl, localDirectory, jobName) {
 
 export const sleep = (ms) =>
   new Promise((resolve) => setTimeout(resolve, ms || DEF_DELAY));
+
+/******************
+ * Input parameters
+ ******************/
+const fileId = 'call_recording_8a22ff43-93b8-4d42-9c8b-749b5f215f2f';
+const accountId = '6797b23aa5f1fec03842a77822b66b02';
+const interactionId = '63879304488-9446b60f';
+
+// handler(fileId, accountId, interactionId);

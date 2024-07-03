@@ -1,6 +1,6 @@
 import { appendToFile } from '../../utils/fileUtil.js';
 
-export function generateTranscript(
+export function mergeAWSTranscripts(
   fileId,
   leftChannel,
   rightChannel,
@@ -60,9 +60,10 @@ const getMappedData = (channel, name) => {
   return result;
 };
 
-const sortByTimestamp = (arr) => arr.sort((a, b) => a.endTime - b.endTime);
+export const sortByTimestamp = (arr) =>
+  arr.sort((a, b) => a.endTime - b.endTime);
 
-function mergeToDialogFormat(arr) {
+export function mergeToDialogFormat(arr) {
   let dialog = '';
   arr.forEach((obj, index) => {
     if (index === 0 || arr[index].channelName !== arr[index - 1].channelName) {
@@ -72,3 +73,7 @@ function mergeToDialogFormat(arr) {
   });
   return dialog.trim();
 }
+/**
+ * TRUCK
+ * PIZZA
+ */
