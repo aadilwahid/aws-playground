@@ -6,6 +6,7 @@ import {
   GetTranscriptionJobCommand,
   StartTranscriptionJobCommand,
   DeleteTranscriptionJobCommand,
+  ListTranscriptionJobsCommand,
 } from '@aws-sdk/client-transcribe';
 
 const transcribeClient = new TranscribeClient({
@@ -13,6 +14,22 @@ const transcribeClient = new TranscribeClient({
   accessKeyId: process.env.AWS_ACCESS_KEY,
   secretAccessKey: process.env.AWS_SECRET_KEY,
 });
+
+export const listTranscriptionJobs = async () => {
+  let data = [];
+  const command = new ListTranscriptionJobsCommand({ MaxResults: 100 });
+
+  do {
+    const resp = await transcribeClient.send(command);
+
+    console.log(`${resp.TranscriptionJobSummaries?.length} items fetched`);
+
+    data = data.concat(resp.TranscriptionJobSummaries);
+    command.input.NextToken = resp.NextToken;
+  } while (command.input.NextToken);
+
+  return data;
+};
 
 export const startTranscriptionJob = async (jobName, fileUrl) => {
   try {

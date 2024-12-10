@@ -2,7 +2,11 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  PutCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({
   region: process.env.REGION,
@@ -16,6 +20,7 @@ export const dynamodb = DynamoDBDocumentClient.from(client, {
 });
 
 const COMMUNICATIONS_TABLE = process.env.COMMUNICATIONS_TABLE;
+const KAZOO_CALLS_TABLE = process.env.KAZOO_CALLS_TABLE;
 
 export const getCommunicationsInRange = async (
   australisId,
@@ -82,4 +87,80 @@ const queryCommunications = async (
     communications: resp?.Items,
     lastEvaluatedKey: resp?.LastEvaluatedKey,
   };
+};
+
+export const getCalls = async (
+  indexName, // 'australisAccountId'
+  indexValue, // accountId
+  start,
+  end,
+  key
+) => {
+  const expressionAttributeValues = {
+    ':indexValue': indexValue,
+  };
+
+  let filter = '';
+  if (start && end) {
+    expressionAttributeValues[':start'] = start;
+    expressionAttributeValues[':end'] = end;
+    filter = 'dateCreated >= :start and dateCreated <= :end';
+  }
+
+  const command = new QueryCommand({
+    TableName: KAZOO_CALLS_TABLE,
+    IndexName: indexName,
+    KeyConditionExpression: '#indexName = :indexValue',
+    ExpressionAttributeNames: {
+      '#indexName': indexName,
+    },
+    ExpressionAttributeValues: expressionAttributeValues,
+    ScanIndexForward: false,
+  });
+
+  if (filter) command.input.FilterExpression = filter;
+  if (key) command.input.ExclusiveStartKey = key;
+  // if (projection) command.input.ProjectionExpression = projection;
+
+  const { Items, LastEvaluatedKey } = await dynamodb.send(command);
+  // console.log('lastEvaluatedKey ::', LastEvaluatedKey);
+
+  return {
+    calls: Items,
+    key: LastEvaluatedKey,
+  };
+};
+
+export const queryChatNumberLink = async (numberStr) => {
+  try {
+    const command = new QueryCommand({
+      TableName: 'ChatNumbers-alpha',
+      KeyConditionExpression: 'numbers = :numberStr',
+      ExpressionAttributeValues: {
+        ':numberStr': numberStr,
+      },
+    });
+
+    const resp = await dynamodb.send(command);
+    return resp?.Items;
+  } catch (error) {
+    console.error(`queryChatNumbers ::`, error);
+  }
+};
+
+export const addChatNumber = async (numbers, chatId) => {
+  try {
+    const command = new PutCommand({
+      TableName: 'ChatNumbers-alpha',
+      Item: { numbers, chatId },
+    });
+
+    const res = await dynamodb.send(command);
+    console.debug(
+      `addChatNumber :: numbers: ${numbers}, chatId: ${chatId}`,
+      res
+    );
+  } catch (err) {
+    console.error('addChatNumber ::', err);
+  }
 };
