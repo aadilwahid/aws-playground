@@ -5,13 +5,12 @@ import {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
-  ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 
 const s3Client = new S3Client({
   region: 'us-east-1',
-  accessKeyId: 'AKIAUV4POGXZ2WTMWO57',
-  secretAccessKey: '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',
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_KEY,
 });
 
 const S3_CALL_AUDIO_BUCKET = process.env.S3_CALL_AUDIO_BUCKET;
@@ -63,15 +62,3 @@ const streamToString = (stream) => {
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
   });
 };
-
-const prefix = `SBGCCRY-CORVUM/sole-proprietor/`; // S3 "folder" path
-const params = {
-  Bucket: 'tcr-csp-reports',
-  Prefix: prefix,
-};
-
-const command = new ListObjectsV2Command(params);
-const data = await s3Client.send(command);
-data.Contents.forEach((item) => {
-  console.log(item.Key); // Prints each file's key (path)
-});
