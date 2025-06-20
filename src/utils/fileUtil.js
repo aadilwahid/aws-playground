@@ -1,5 +1,6 @@
-import fs from 'fs';
+import fs, { createReadStream } from 'fs';
 import { Readable } from 'stream';
+import { createInterface } from 'readline';
 
 export const appendToFile = (data, filename) => {
   return fs.appendFileSync(filename, JSON.stringify(data));
@@ -36,4 +37,23 @@ export async function saveAudioFile(directory, fileName, fileData) {
     localFileStream.on('finish', resolve);
     localFileStream.on('error', reject);
   });
+}
+
+export const writeToJSONLFile = (data, filePath) =>
+  fs.promises.writeFile(filePath, data);
+
+export async function readJsonlFile(filePath) {
+  const fileStream = createReadStream(filePath);
+  const rl = createInterface({
+    input: fileStream,
+    crlfDelay: Infinity,
+  });
+
+  const results = [];
+  for await (const line of rl) {
+    if (line.trim()) {
+      results.push(JSON.parse(line));
+    }
+  }
+  return results;
 }

@@ -17,7 +17,9 @@
         "@aws-sdk/client-s3": "^3.477.0",
         "@aws-sdk/client-transcribe": "^3.490.0",
         "@aws-sdk/lib-dynamodb": "^3.556.0",
+        "@aws-sdk/s3-request-presigner": "^3.832.0",
         "dotenv": "^16.0.3",
+        "groq-sdk": "^0.25.0",
         "openai": "^4.31.0"
     },
     "devDependencies": {

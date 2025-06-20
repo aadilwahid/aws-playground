@@ -6,11 +6,14 @@ import {
   GetObjectCommand,
   PutObjectCommand,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const s3Client = new S3Client({
-  region: process.env.REGION,
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_KEY,
+  credentials: {
+    region: process.env.REGION,
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_KEY,
+  },
 });
 
 const S3_CALL_AUDIO_BUCKET = process.env.S3_CALL_AUDIO_BUCKET;
@@ -61,4 +64,14 @@ const streamToString = (stream) => {
     stream.on('error', reject);
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
   });
+};
+
+export const getPreSignedUrl = (key, expires = 300) => {
+  const command = new GetObjectCommand({
+    Bucket: S3_CALL_AUDIO_BUCKET,
+    Key: key,
+    Expires: expires,
+  });
+
+  return getSignedUrl(s3Client, command, { expiresIn: expires });
 };
